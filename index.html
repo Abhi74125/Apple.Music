@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Apple Music Clone</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --sidebar-width: 240px;
+            --top-bar-height: 50px;
+            --apple-red: #fa2d48;
+            --bg-gray: #f9f9f9;
+            --border-color: #e5e5e5;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+
+        body { display: flex; height: 100vh; background-color: white; overflow: hidden; }
+
+        /* Sidebar */
+        .sidebar {
+            width: var(--sidebar-width);
+            border-right: 1px solid var(--border-color);
+            padding: 20px;
+            background: var(--bg-gray);
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .logo { font-size: 22px; font-weight: bold; display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+        .search-box {
+            background: white;
+            border: 1px solid var(--border-color);
+            padding: 8px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #888;
+        }
+        .search-box input { border: none; outline: none; width: 100%; font-size: 14px; }
+        
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            color: #333;
+            transition: 0.3s;
+        }
+        .nav-item.active { background: #e5e5e5; font-weight: 600; }
+        .nav-item i { color: var(--apple-red); font-size: 18px; }
+
+        /* Main Content */
+        .main { flex: 1; display: flex; flex-direction: column; position: relative; }
+
+        /* Top Player Bar */
+        .top-bar {
+            height: 60px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+        }
+
+        .controls { display: flex; align-items: center; gap: 20px; font-size: 18px; color: #555; }
+        .controls i { cursor: pointer; }
+        .controls i:hover { color: var(--apple-red); }
+
+        .now-playing-card {
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            width: 400px;
+            display: flex;
+            align-items: center;
+            padding: 5px 10px;
+            gap: 10px;
+            position: relative;
+        }
+        .mini-album-art { width: 40px; height: 40px; border-radius: 4px; }
+        .track-info-mini { flex: 1; text-align: center; }
+        .track-info-mini h4 { font-size: 12px; }
+        .track-info-mini p { font-size: 10px; color: gray; }
+
+        /* Content Area */
+        .content {
+            padding: 60px;
+            display: flex;
+            gap: 40px;
+            align-items: center;
+        }
+
+        .album-art-main {
+            width: 350px;
+            height: 350px;
+            border-radius: 12px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+            transition: transform 0.5s ease;
+        }
+        .album-art-main:hover { transform: scale(1.02); }
+
+        .song-details h1 { font-size: 32px; margin-bottom: 10px; }
+        .song-details p { color: gray; margin-bottom: 20px; }
+
+        .preview-btn {
+            background: #f1f1f1;
+            border: none;
+            padding: 10px 25px;
+            border-radius: 8px;
+            font-weight: bold;
+            color: var(--apple-red);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* Animation & Progress */
+        .progress-container {
+            width: 100%;
+            height: 4px;
+            background: #eee;
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            cursor: pointer;
+        }
+        .progress-bar { height: 100%; background: var(--apple-red); width: 0%; transition: width 0.1s; }
+
+        .signin-btn {
+            background: var(--apple-red);
+            color: white;
+            padding: 6px 15px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+    <aside class="sidebar">
+        <div class="logo"><i class="fab fa-apple"></i> Music</div>
+        <div class="search-box">
+            <i class="fas fa-search"></i>
+            <input type="text" placeholder="Search">
+        </div>
+        <div class="nav-item"><i class="fas fa-home"></i> Home</div>
+        <div class="nav-item active"><i class="fas fa-th-large"></i> New</div>
+        <div class="nav-item"><i class="fas fa-broadcast-tower"></i> Radio</div>
+    </aside>
+
+    <main class="main">
+        <div class="top-bar">
+            <div class="controls">
+                <i class="fas fa-random"></i>
+                <i class="fas fa-step-backward"></i>
+                <i class="fas fa-play" id="masterPlay"></i>
+                <i class="fas fa-step-forward"></i>
+                <i class="fas fa-redo"></i>
+            </div>
+
+            <div class="now-playing-card">
+
+                <div class="track-info-mini">
+                    <h4 id="mini-title">Dil Kaa Jo Haal Hai</h4>
+                    <p>PREVIEW</p>
+                </div>
+                <div class="progress-container" id="progressContainer">
+                    <div class="progress-bar" id="progressBar"></div>
+                </div>
+            </div>
+
+            <div style="display: flex; align-items: center; gap: 15px;">
+                <i class="fas fa-volume-up"></i>
+                <input type="range" style="width: 80px;">
+                <a href="#" class="signin-btn"><i class="fas fa-user"></i> Sign In</a>
+            </div>
+        </div>
+
+        <div class="content">
+          <a href="https://imgbb.com/"><img src="https://i.ibb.co/qMGnmWnq/artworks-000113018693-15tiv6-t500x500.jpg"  class="album-art-main" id="albumArt">
+            <div class="song-details">
+                <h1>BIRTHDAY BASH</h1>
+                <p>YOYO HONEY SINGH </p>
+                <button class="preview-btn" id="previewBtn">
+                    <i class="fas fa-play"></i> Preview
+                </button>
+            </div>
+        </div>
+    </main>
+
+    <audio id="mainAudio" src="https://files.catbox.moe/l41abp.mp3"></audio>
+
+    <script>
+        const audio = document.getElementById('mainAudio');
+        const playBtn = document.getElementById('masterPlay');
+        const previewBtn = document.getElementById('previewBtn');
+        const progressBar = document.getElementById('progressBar');
+        const progressContainer = document.getElementById('progressContainer');
+        const albumArt = document.getElementById('albumArt');
+
+        let isPlaying = false;
+
+        function togglePlay() {
+            if (isPlaying) {
+                audio.pause();
+                playBtn.classList.replace('fa-pause', 'fa-play');
+                previewBtn.innerHTML = '<i class="fas fa-play"></i> Preview';
+                albumArt.style.transform = "scale(1)";
+            } else {
+                audio.play();
+                playBtn.classList.replace('fa-play', 'fa-pause');
+                previewBtn.innerHTML = '<i class="fas fa-pause"></i> Pause';
+                albumArt.style.transform = "scale(1.05)";
+            }
+            isPlaying = !isPlaying;
+        }
+
+        playBtn.addEventListener('click', togglePlay);
+        previewBtn.addEventListener('click', togglePlay);
+
+        // Update Progress Bar
+        audio.addEventListener('timeupdate', () => {
+            const percent = (audio.currentTime / audio.duration) * 100;
+            progressBar.style.width = percent + '%';
+        });
+
+        // Click on Progress Bar to Seek
+        progressContainer.addEventListener('click', (e) => {
+            const width = progressContainer.clientWidth;
+            const clickX = e.offsetX;
+            const duration = audio.duration;
+            audio.currentTime = (clickX / width) * duration;
+        });
+
+        // Simple Animation: Rotate art slightly when playing
+        setInterval(() => {
+            if(isPlaying) {
+                let currentScroll = new Date().getTime() / 100;
+                // You can add more subtle animations here
+            }
+        }, 100);
+    </script>
+</body>
+</html>
